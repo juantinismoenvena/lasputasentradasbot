@@ -8,21 +8,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v4
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
         python-version: '3.11'
-    - run: pip install -r requirements.txt
-    - run: |
-        if [ ! -f state.txt ]; then echo "empty" > state.txt; fi
-    - run: python checker.py
+    
+    - name: Install pip dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests beautifulsoup4
+    
+    - name: Create state file
+      run: echo "empty" > state.txt
+    
+    - name: Run checker
       env:
         TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-    - run: |
-        if ! git diff --quiet; then
-          git config user.name "revuelta-bot"
-          git config user.email "bot@example.com"
-          git add state.txt
-          git commit -m "Update state"
-          git push
-        fi
+      run: python checker.py
+    
+    - name: Commit state
+      run: |
+        git config user.name "revuelta-bot"
+        git config user.email "bot@example.com"
+        git add state.txt
+        git commit -m "Update state" || echo "No changes"
+        git push || echo "No push needed"
