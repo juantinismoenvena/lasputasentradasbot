@@ -16,30 +16,21 @@ def hay_plazas():
     r = requests.get(URL, headers=headers, timeout=15)
     soup = BeautifulSoup(r.text, "html.parser")
     texto = soup.get_text().lower()
-    if "no hay plazas disponibles" in texto:
-        return False
-    if "completa el siguiente formulario" in texto:
-        return True
-    return False
+    return "completa el siguiente formulario" in texto
 
-def load_state():
-    try:
-        with open("state.txt", "r") as f:
-            return f.read().strip() == "available"
-    except:
-        return False
+# Carga estado anterior
+try:
+    with open("state.txt", "r") as f:
+        enviado = f.read().strip() == "available"
+except:
+    enviado = False
 
-def save_state(available):
+if hay_plazas() and not enviado:
+    enviar_mensaje("🚨 HAY PLAZAS PARA LA REVUELTA\nhttps://elterrat.com/contacto/publico-la-revuelta/")
     with open("state.txt", "w") as f:
-        f.write("available" if available else "empty")
+        f.write("available")
+else:
+    with open("state.txt", "w") as f:
+        f.write("empty")
 
-def main():
-    enviado = load_state()
-    if hay_plazas() and not enviado:
-        enviar_mensaje("🚨 HAY PLAZAS PARA LA REVUELTA\nhttps://elterrat.com/contacto/publico-la-revuelta/")
-        save_state(True)
-    elif not hay_plazas():
-        save_state(False)
-
-if _name_ == "_main_":
-    main()
+print("✅ CHECK COMPLETADO")
